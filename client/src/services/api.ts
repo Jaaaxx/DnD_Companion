@@ -6,21 +6,28 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Clerk instance will be set by the app
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let clerkInstance: any = null;
+
+export function setClerkInstance(clerk: unknown) {
+  clerkInstance = clerk;
+}
+
 class ApiClient {
   private async getAuthHeaders(): Promise<HeadersInit> {
-    // In development, use a mock user ID
-    if (import.meta.env.DEV) {
+    // Get the Clerk session token
+    const token = await clerkInstance?.session?.getToken();
+    
+    if (token) {
       return {
         'Content-Type': 'application/json',
-        'x-mock-user-id': 'dev-user-123',
+        'Authorization': `Bearer ${token}`,
       };
     }
 
-    // In production, get the Clerk session token
-    // const token = await window.Clerk?.session?.getToken();
     return {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${token}`,
     };
   }
 

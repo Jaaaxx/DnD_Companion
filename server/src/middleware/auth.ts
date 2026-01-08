@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { createClerkClient } from '@clerk/backend';
 import { prisma } from '../lib/prisma.js';
 
 // Extended request type with user
@@ -7,9 +8,14 @@ export interface AuthenticatedRequest extends Request {
   clerkId?: string;
 }
 
+// Initialize Clerk client
+const clerk = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
+
 /**
  * Auth middleware - validates Clerk session and attaches user to request
- * In development mode, allows a mock user for testing
+ * Auto-creates users if they don't exist in our database
  */
 export async function authMiddleware(
   req: AuthenticatedRequest,
@@ -17,33 +23,7 @@ export async function authMiddleware(
   next: NextFunction
 ) {
   try {
-    // Development mode: allow mock authentication
-    if (process.env.NODE_ENV === 'development') {
-      const mockClerkId = req.headers['x-mock-user-id'] as string;
-      
-      if (mockClerkId) {
-        // Find or create mock user
-        let user = await prisma.user.findUnique({
-          where: { clerkId: mockClerkId },
-        });
-        
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              clerkId: mockClerkId,
-              email: `${mockClerkId}@dev.local`,
-              name: 'Dev User',
-            },
-          });
-        }
-        
-        req.userId = user.id;
-        req.clerkId = user.clerkId;
-        return next();
-      }
-    }
-    
-    // Production: validate Clerk JWT from Authorization header
+    // Validate Clerk JWT from Authorization header
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -55,39 +35,50 @@ export async function authMiddleware(
     
     const token = authHeader.substring(7);
     
-    // TODO: Implement proper Clerk JWT verification
-    // For now, we'll extract the clerk ID from a simplified token format
-    // In production, use @clerk/backend to verify the JWT
-    
-    // Placeholder: In real implementation, verify JWT and extract clerkId
-    // const { sub: clerkId } = await verifyClerkToken(token);
-    
-    // For development/testing, we'll accept the token as the clerk ID directly
-    const clerkId = token;
-    
-    if (!clerkId) {
+    try {
+      // Verify the JWT with Clerk
+      const { sub: clerkId } = await clerk.verifyToken(token);
+      
+      if (!clerkId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid token',
+        });
+      }
+      
+      // Find or create user
+      let user = await prisma.user.findUnique({
+        where: { clerkId },
+      });
+      
+      if (!user) {
+        // Fetch user info from Clerk to create our database record
+        const clerkUser = await clerk.users.getUser(clerkId);
+        
+        user = await prisma.user.create({
+          data: {
+            clerkId,
+            email: clerkUser.emailAddresses[0]?.emailAddress || `${clerkId}@unknown.local`,
+            name: clerkUser.firstName 
+              ? `${clerkUser.firstName}${clerkUser.lastName ? ' ' + clerkUser.lastName : ''}`
+              : 'Dungeon Master',
+          },
+        });
+        
+        console.log(`Created new user: ${user.email} (${user.id})`);
+      }
+      
+      req.userId = user.id;
+      req.clerkId = user.clerkId;
+      
+      next();
+    } catch (verifyError) {
+      console.error('Token verification failed:', verifyError);
       return res.status(401).json({
         success: false,
-        error: 'Invalid token',
+        error: 'Invalid or expired token',
       });
     }
-    
-    // Find user by Clerk ID
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-    });
-    
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not found',
-      });
-    }
-    
-    req.userId = user.id;
-    req.clerkId = user.clerkId;
-    
-    next();
   } catch (error) {
     console.error('Auth middleware error:', error);
     return res.status(500).json({
@@ -117,5 +108,3 @@ export async function optionalAuthMiddleware(
     next();
   }
 }
-
-

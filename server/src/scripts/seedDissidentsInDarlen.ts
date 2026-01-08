@@ -5,14 +5,14 @@ const prisma = new PrismaClient();
 async function seedDissidentsInDarlen() {
   console.log('🐉 Seeding "Dissidents in Darlen" campaign...\n');
 
-  // Create or find test user
+  // Create or find user
   const testUser = await prisma.user.upsert({
-    where: { clerkId: 'dev-user-123' },
+    where: { clerkId: 'user_37woq4gAbfe2lRPIwgdNDVktXws' },
     update: {},
     create: {
-      clerkId: 'dev-user-123',
-      email: 'dm@example.com',
-      name: 'Sean (DM)',
+      clerkId: 'user_37woq4gAbfe2lRPIwgdNDVktXws',
+      email: 'jax@dndcompanion.app',
+      name: 'Dungeon Master',
     },
   });
   console.log('✓ User created/found:', testUser.email);

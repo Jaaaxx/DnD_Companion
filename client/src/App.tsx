@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, RedirectToSignIn, useClerk } from '@clerk/clerk-react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { CampaignList } from './pages/CampaignList';
@@ -8,8 +9,15 @@ import { CampaignSetup } from './pages/CampaignSetup';
 import { LiveSession } from './pages/LiveSession';
 import { SessionDetail } from './pages/SessionDetail';
 import { Landing } from './pages/Landing';
+import { setClerkInstance } from './services/api';
 
-function App() {
+function AppRoutes() {
+  const clerk = useClerk();
+  
+  useEffect(() => {
+    setClerkInstance(clerk);
+  }, [clerk]);
+
   return (
     <Routes>
       {/* Public landing page */}
@@ -45,6 +53,10 @@ function App() {
       <Route path="/dashboard" element={<Navigate to="/app" replace />} />
     </Routes>
   );
+}
+
+function App() {
+  return <AppRoutes />;
 }
 
 export default App;

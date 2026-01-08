@@ -24,6 +24,6 @@ RUN npm run build
 # Expose port
 EXPOSE 3001
 
-# Start server
+# Start server (uses PORT env var from Railway)
 CMD ["node", "dist/index.js"]
 

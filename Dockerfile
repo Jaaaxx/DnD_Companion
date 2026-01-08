@@ -5,18 +5,14 @@ WORKDIR /app
 # Install openssl for Prisma
 RUN apk add --no-cache openssl
 
-# Copy server package files
-COPY server/package*.json ./
+# Copy all server files first
+COPY server/ ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install --production=false
 
-# Copy prisma schema and generate client
-COPY server/prisma ./prisma/
+# Generate Prisma client
 RUN npx prisma generate
-
-# Copy server source code
-COPY server/ ./
 
 # Build TypeScript
 RUN npm run build

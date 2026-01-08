@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { TranscriptionService, TranscriptSegment } from '../services/transcription.js';
 import { AIService } from '../services/ai.js';
@@ -32,7 +33,7 @@ async function saveTranscript(sessionId: string, segments: TranscriptSegment[]) 
   try {
     await prisma.session.update({
       where: { id: sessionId },
-      data: { transcript: segments },
+      data: { transcript: segments as unknown as Prisma.InputJsonValue },
     });
     console.log(`💾 Saved ${segments.length} transcript segments for session ${sessionId}`);
   } catch (error) {
@@ -347,7 +348,7 @@ export function setupWebSocket(io: Server) {
                             value: event.value || null,
                             statusEffect: event.statusEffect || null,
                             description: event.description,
-                            timestamp: new Date(),
+                            timestamp: Date.now(),
                             confirmed: false,
                           },
                         });

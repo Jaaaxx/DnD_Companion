@@ -5,17 +5,17 @@ const prisma = new PrismaClient();
 async function seedTestData() {
   console.log('🎲 Seeding test data...\n');
 
-  // Create or find test user
+  // Find or create user (using actual Clerk ID)
   const testUser = await prisma.user.upsert({
-    where: { clerkId: 'dev-user-123' },
+    where: { clerkId: 'user_37woq4gAbfe2lRPIwgdNDVktXws' },
     update: {},
     create: {
-      clerkId: 'dev-user-123',
-      email: 'dm@example.com',
-      name: 'Test Dungeon Master',
+      clerkId: 'user_37woq4gAbfe2lRPIwgdNDVktXws',
+      email: 'jax.hutton@comcast.net',
+      name: 'Jax',
     },
   });
-  console.log('✓ Test user created/found:', testUser.email);
+  console.log('✓ User created/found:', testUser.email);
 
   // Create example campaign
   const campaign = await prisma.campaign.upsert({

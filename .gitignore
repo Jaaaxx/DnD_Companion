@@ -45,3 +45,5 @@ prisma/*.db-journal
 .cache/
 
 
+server/src/scripts/seedTestData.ts
+server/src/scripts/seedTestData.ts

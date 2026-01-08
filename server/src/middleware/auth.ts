@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClerkClient } from '@clerk/backend';
+import { verifyToken, createClerkClient } from '@clerk/backend';
 import { prisma } from '../lib/prisma.js';
 
 // Extended request type with user
@@ -8,7 +8,7 @@ export interface AuthenticatedRequest extends Request {
   clerkId?: string;
 }
 
-// Initialize Clerk client
+// Initialize Clerk client for user API calls
 const clerk = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
@@ -23,10 +23,15 @@ export async function authMiddleware(
   next: NextFunction
 ) {
   try {
+    console.log(`[Auth] ${req.method} ${req.path}`);
+    
     // Validate Clerk JWT from Authorization header
     const authHeader = req.headers.authorization;
     
+    console.log(`[Auth] Authorization header: ${authHeader ? 'present' : 'missing'}`);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[Auth] ❌ Missing or invalid authorization header');
       return res.status(401).json({
         success: false,
         error: 'Missing or invalid authorization header',
@@ -34,12 +39,19 @@ export async function authMiddleware(
     }
     
     const token = authHeader.substring(7);
+    console.log(`[Auth] Token length: ${token.length}`);
     
     try {
       // Verify the JWT with Clerk
-      const { sub: clerkId } = await clerk.verifyToken(token);
+      console.log('[Auth] Verifying token with Clerk...');
+      const payload = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      const clerkId = payload.sub;
+      console.log(`[Auth] Token verified, clerkId: ${clerkId}`);
       
       if (!clerkId) {
+        console.log('[Auth] ❌ No clerkId in token');
         return res.status(401).json({
           success: false,
           error: 'Invalid token',
@@ -52,6 +64,7 @@ export async function authMiddleware(
       });
       
       if (!user) {
+        console.log(`[Auth] User not found, creating new user for clerkId: ${clerkId}`);
         // Fetch user info from Clerk to create our database record
         const clerkUser = await clerk.users.getUser(clerkId);
         
@@ -65,7 +78,9 @@ export async function authMiddleware(
           },
         });
         
-        console.log(`Created new user: ${user.email} (${user.id})`);
+        console.log(`[Auth] ✓ Created new user: ${user.email} (${user.id})`);
+      } else {
+        console.log(`[Auth] ✓ Found existing user: ${user.email} (${user.id})`);
       }
       
       req.userId = user.id;
@@ -73,7 +88,7 @@ export async function authMiddleware(
       
       next();
     } catch (verifyError) {
-      console.error('Token verification failed:', verifyError);
+      console.error('[Auth] ❌ Token verification failed:', verifyError);
       return res.status(401).json({
         success: false,
         error: 'Invalid or expired token',

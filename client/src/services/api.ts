@@ -6,24 +6,27 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Clerk instance will be set by the app
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let clerkInstance: any = null;
+// Token getter function will be set by the app
+let getTokenFn: (() => Promise<string | null>) | null = null;
 
-export function setClerkInstance(clerk: unknown) {
-  clerkInstance = clerk;
+export function setTokenGetter(fn: () => Promise<string | null>) {
+  getTokenFn = fn;
 }
 
 class ApiClient {
   private async getAuthHeaders(): Promise<HeadersInit> {
     // Get the Clerk session token
-    const token = await clerkInstance?.session?.getToken();
-    
-    if (token) {
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      };
+    try {
+      const token = await getTokenFn?.();
+      
+      if (token) {
+        return {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+      }
+    } catch (error) {
+      console.error('[API] Error getting token:', error);
     }
 
     return {

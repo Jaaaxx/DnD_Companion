@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn, useClerk } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, RedirectToSignIn, useAuth } from '@clerk/clerk-react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { CampaignList } from './pages/CampaignList';
@@ -9,14 +9,14 @@ import { CampaignSetup } from './pages/CampaignSetup';
 import { LiveSession } from './pages/LiveSession';
 import { SessionDetail } from './pages/SessionDetail';
 import { Landing } from './pages/Landing';
-import { setClerkInstance } from './services/api';
+import { setTokenGetter } from './services/api';
 
 function AppRoutes() {
-  const clerk = useClerk();
+  const { getToken } = useAuth();
   
   useEffect(() => {
-    setClerkInstance(clerk);
-  }, [clerk]);
+    setTokenGetter(getToken);
+  }, [getToken]);
 
   return (
     <Routes>

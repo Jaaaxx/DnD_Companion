@@ -43,6 +43,16 @@ class ApiClient {
     return this.handleResponse<T>(response);
   }
 
+  async put<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse<T>(response);
+  }
+
   async patch<T>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
     const headers = await this.getAuthHeaders();
     const response = await fetch(`${API_BASE}${endpoint}`, {

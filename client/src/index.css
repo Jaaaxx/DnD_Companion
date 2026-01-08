@@ -1,0 +1,184 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-dungeon-950 text-parchment-100;
+  }
+
+  body {
+    @apply font-body antialiased;
+    background-image: 
+      radial-gradient(ellipse at top, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(220, 38, 38, 0.05) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  ::selection {
+    @apply bg-mystic-600/50 text-white;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-display text-sm uppercase tracking-wider 
+           transition-all duration-200 ease-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dungeon-950;
+  }
+
+  .btn-primary {
+    @apply btn bg-mystic-600 text-white hover:bg-mystic-500 
+           focus:ring-mystic-500 shadow-glow hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply btn bg-dungeon-800 text-parchment-200 border border-dungeon-600
+           hover:bg-dungeon-700 hover:border-dungeon-500 focus:ring-dungeon-500;
+  }
+
+  .btn-danger {
+    @apply btn bg-dragon-700 text-white hover:bg-dragon-600 
+           focus:ring-dragon-500 shadow-glow-red;
+  }
+
+  .btn-ghost {
+    @apply btn text-parchment-300 hover:text-parchment-100 hover:bg-dungeon-800/50;
+  }
+
+  .card {
+    @apply bg-dungeon-900/80 backdrop-blur-sm border border-dungeon-700/50 
+           rounded-xl shadow-xl overflow-hidden;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-dungeon-700/50 bg-dungeon-800/30;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 bg-dungeon-800 border border-dungeon-600 rounded-lg
+           text-parchment-100 placeholder-dungeon-400
+           focus:outline-none focus:ring-2 focus:ring-mystic-500/50 focus:border-mystic-500
+           transition-colors duration-200;
+  }
+
+  .input-label {
+    @apply block text-sm font-display uppercase tracking-wider text-parchment-300 mb-2;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-mystic {
+    @apply badge bg-mystic-900/50 text-mystic-300 border border-mystic-700/50;
+  }
+
+  .badge-dragon {
+    @apply badge bg-dragon-900/50 text-dragon-300 border border-dragon-700/50;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-900/50 text-emerald-300 border border-emerald-700/50;
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.dungeon.600') transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: theme('colors.dungeon.600');
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: theme('colors.dungeon.500');
+  }
+
+  /* Recording indicator animation */
+  .recording-pulse {
+    @apply relative;
+  }
+
+  .recording-pulse::before {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-dragon-500 animate-ping opacity-75;
+  }
+
+  /* Transcript segment styling */
+  .transcript-segment {
+    @apply relative pl-4 py-2 border-l-2 border-transparent
+           hover:bg-dungeon-800/30 transition-colors duration-150;
+  }
+
+  .transcript-segment-dm {
+    @apply border-l-mystic-500;
+  }
+
+  .transcript-segment-player {
+    @apply border-l-parchment-500;
+  }
+
+  /* Health bar */
+  .health-bar {
+    @apply h-3 bg-dungeon-800 rounded-full overflow-hidden;
+  }
+
+  .health-bar-fill {
+    @apply h-full transition-all duration-500 ease-out rounded-full;
+  }
+
+  .health-bar-fill.healthy {
+    @apply bg-gradient-to-r from-emerald-600 to-emerald-400;
+  }
+
+  .health-bar-fill.injured {
+    @apply bg-gradient-to-r from-amber-600 to-amber-400;
+  }
+
+  .health-bar-fill.critical {
+    @apply bg-gradient-to-r from-dragon-700 to-dragon-500;
+  }
+}
+
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  .border-glow {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.2), inset 0 0 15px rgba(139, 92, 246, 0.05);
+  }
+
+  .pattern-grid {
+    background-image: 
+      linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-parchment-200 to-parchment-400;
+  }
+}
+
+

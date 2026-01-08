@@ -1,0 +1,209 @@
+// Prisma schema for D&D Companion
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  worldContext String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessions      Session[]
+  players       Player[]
+  npcs          NPC[]
+  soundMappings SoundMapping[]
+
+  @@index([userId])
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  sessionNumber Int
+  title         String?
+  date          DateTime      @default(now())
+  transcript    Json          @default("[]")
+  notes         String?       @db.Text
+  recap         String?       @db.Text
+  status        SessionStatus @default(draft)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  healthEvents   HealthEvent[]
+  healthSnapshots HealthSnapshot[]
+
+  @@unique([campaignId, sessionNumber])
+  @@index([campaignId])
+}
+
+enum SessionStatus {
+  draft
+  in_progress
+  completed
+}
+
+model Player {
+  id             String   @id @default(cuid())
+  playerName     String
+  characterName  String
+  characterClass String?
+  characterRace  String?
+  maxHp          Int      @default(10)
+  currentHp      Int      @default(10)
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  healthEvents    HealthEvent[]
+  healthSnapshots HealthSnapshot[]
+
+  @@index([campaignId])
+}
+
+model NPC {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?  @db.Text
+  speechPatterns String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+model SoundMapping {
+  id               String      @id @default(cuid())
+  name             String
+  triggerType      TriggerType
+  triggerValue     String
+  audioFile        String
+  audioSource      AudioSource @default(local)
+  externalId       String?
+  previewUrl       String?
+  attribution      String?
+  volume           Int         @default(80)
+  loop             Boolean     @default(false)
+  crossfadeDuration Int        @default(2000)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+enum AudioSource {
+  local
+  freesound
+  jamendo
+  tabletop
+}
+
+enum TriggerType {
+  keyword
+  scene
+  manual
+}
+
+model HealthEvent {
+  id           String          @id @default(cuid())
+  type         HealthEventType
+  value        Int?
+  statusEffect String?
+  description  String
+  timestamp    Int // milliseconds from session start
+  confirmed    Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([playerId])
+}
+
+enum HealthEventType {
+  damage
+  healing
+  status
+  death
+  revive
+}
+
+model HealthSnapshot {
+  id        String   @id @default(cuid())
+  hp        Int
+  maxHp     Int
+  timestamp Int // milliseconds from session start
+  createdAt DateTime @default(now())
+
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([playerId])
+}
+
+model AudioTrack {
+  id        String    @id @default(cuid())
+  name      String
+  category  SceneType
+  filename  String
+  duration  Int // seconds
+  isBuiltIn Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@index([category])
+}
+
+enum SceneType {
+  combat
+  exploration
+  social
+  tense
+  dramatic
+  tavern
+  forest
+  dungeon
+  ambient
+}
+
+

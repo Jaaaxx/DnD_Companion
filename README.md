@@ -1,6 +1,6 @@
 # D&D Companion
 
-A real-time campaign transcription and management web application for in-person D&D sessions.
+A real-time campaign transcription and management web application for in-person D&D sessions. Mostly handles automatic audio-playing and note-taking at the moment.
 
 ## Features
 
